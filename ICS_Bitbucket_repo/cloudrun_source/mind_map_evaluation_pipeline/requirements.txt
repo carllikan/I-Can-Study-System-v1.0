@@ -1,0 +1,31 @@
+boto3==1.28.71
+# google-cloud-aiplatform==1.36.1
+google-cloud-firestore==2.13.0
+google-cloud-storage==2.11.0
+gunicorn==20.1.0
+Flask==3.0.0
+numpy==1.23.5
+opencv-python-headless==4.8.1.78
+pandas==2.0.3
+requests==2.31.0
+# pg8000==1.30.2
+Pillow==10.0.1
+python-dotenv==1.0.0
+pymysql==1.1.1
+scikit-learn==1.3.1
+sqlalchemy==2.0.21
+pytz==2023.3.post1
+transformers==4.36.0
+google-api-python-client
+oauth2client
+firebase-admin
+google-cloud-secret-manager
+google-auth
+google-auth-oauthlib
+google-cloud-aiplatform
+google-cloud-tasks
+textblob==0.17.1
+openai==1.3.5
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.23.0
+sqlalchemy==2.0.21

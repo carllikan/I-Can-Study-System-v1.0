@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "be4499d3-446e-47fe-81fd-46d150a45076",
+		"name": "ICS-AI-TEST-APIs",
+		"description": "### Introduction\n\nWelcome to the ICS-AI-TEST-APIs documentation for Postman collection. This comprehensive guide provides detailed insights and instructions on how to utilize and test the various APIs and sub-APIs encompassed within this collection.\n\n### Collection Overview\n\nThe ICS-AI-DEV-APIs collection comprises two primary APIs:\n\n1. **ICS-AI-TEST-GS**: Global Search API in Test environment.\n    \n2. **ICS-AI-TEST-EVAL**: Evaluation API in Test environment.\n    \n\nAdditionally, the ICS-AI-Dev-EVAL houses the following sub-APIs:\n\n- **ICS-AI-TEST-REFLECTION:** Endpoint of Reflection processing pipeline.\n    \n- **ICS-AI-TEST-MINDMAP:** Endpoint of Mindmap processing pipeline.\n    \n- **ICS-AI-TEST-FINALFEEDBACK:** Endpoint of Final Feedback processing pipeline.\n    \n\nThe provision of sub-domains allows for individualized testing, ensuring that each component of the API functions seamlessly and delivers the expected outcomes.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20287685",
+		"_collection_link": "https://grey-flare-223059.postman.co/workspace/a2655644-7144-4478-b76c-1170f1626a04/collection/20287685-be4499d3-446e-47fe-81fd-46d150a45076?action=share&source=collection_link&creator=20287685"
+	},
+	"item": [
+		{
+			"name": "ICS-AI-TEST-GS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ics-global-search-api-jjfeaywz4a-ts.a.run.app?query=scrum&user_id=user2&user_stage=TT",
+					"protocol": "https",
+					"host": [
+						"ics-global-search-api-jjfeaywz4a-ts",
+						"a",
+						"run",
+						"app"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "scrum",
+							"description": "Required"
+						},
+						{
+							"key": "user_id",
+							"value": "user2",
+							"description": "Required"
+						},
+						{
+							"key": "user_stage",
+							"value": "TT",
+							"description": "Required"
+						},
+						{
+							"key": "singleSummary",
+							"value": "",
+							"description": "Optional",
+							"disabled": true
+						},
+						{
+							"key": "allSummary",
+							"value": "",
+							"description": "Optional",
+							"disabled": true
+						},
+						{
+							"key": "topk",
+							"value": "",
+							"description": "Optional",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "",
+							"description": "Optional",
+							"disabled": true
+						},
+						{
+							"key": "threshold",
+							"value": "",
+							"description": "Optional",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Global Search API. To test the API, Please refer to the parameters table below."
+			},
+			"response": []
+		},
+		{
+			"name": "ICS-AI-TEST-EVAL",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\": \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"user_consent\": \"True\",\r\n    \"request_type\": \"enabling\",\r\n    \"guided_reflection\": {\r\n        \"experience\": \"feel difficult to extract the crucial concepts in atmospheric dynamics, especially in the grouping stage.\",\r\n        \"reflection\": \"highlight the keywords, find related information in the references\",\r\n        \"abstraction\": \"highlighting keywords makes me so confused because it just gives me the detailed information, not the general picture. However, when I count the frequency of keywords in the essay, I can feel how this keyword is important and make the chunking step easier. The keyword that appears more frequent tends to be more important. \",\r\n        \"experimentation\": \"focus on the crucial concepts by counting its frequency.\"\r\n    },\r\n    \"Mind-map-image-file\": [\"gs://ics-analysis-test-mindmaps/3.7.1_Inheritance_1.jpg\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ics-evaluation-api-jjfeaywz4a-ts.a.run.app",
+					"protocol": "https",
+					"host": [
+						"ics-evaluation-api-jjfeaywz4a-ts",
+						"a",
+						"run",
+						"app"
+					]
+				},
+				"description": "The evaluation API accept the url link of the mindmap images and text of reflection."
+			},
+			"response": []
+		},
+		{
+			"name": "ICS-AI-TEST-REFLECTION",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mainjob-ID\" : \"xxx\",\r\n    \"maineval-StartTime\" : \"2023-08-24 11:04:25\",\r\n    \"user_id\" : \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\"OAE\", \"BOA\", \"SOL\", \"SOA\", \"EUO\", \"ETG\", \"SBT\", \"SAP\", \"NMG\", \"TOA\", \"RRE\", \"IOE\", \"RSL\", \"IAM\", \"TWP\", \"TOT\", \"RSG\", \"UPN\", \"UTG\", \"IPN\", \"BTN\"],\r\n    \"experience\": \"feel difficult to extract the crucial concepts in atmospheric dynamics, especially in the grouping stage.\",\r\n    \"reflection\": \"highlight the keywords, find related information in the references\",\r\n    \"abstraction\": \"highlighting keywords makes me so confused because it just gives me the detailed information, not the general picture. However, when I count the frequency of keywords in the essay, I can feel how this keyword is important and make the chunking step easier. The keyword that appears more frequent tends to be more important. \",\r\n    \"experimentation\": \"focus on the crucial concepts by counting its frequency.\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ICS-AI-TEST-MINDMAP",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mainjob-ID\" : \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\" : \"2023-08-24 11:04:25\",\r\n    \"user_id\" : \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\"OSG\", \"MSG\", \"UTS\"],\r\n    \"Mind-map-image-file\": \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ICS-AI-TEST-FINALFEEDBACK",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mainjob-ID\" : \"1234-5678-91011-12\",\r\n    \"user_id\" : \"user4\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}\r\n// In final feedback function, we will check whether the components are all done, If so, call back https://test.learning.icanstudy.com/api/expertfeedback/created",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		}
+	]
+}

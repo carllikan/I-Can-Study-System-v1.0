@@ -1,0 +1,13 @@
+Flask
+requests
+sqlalchemy
+python-dotenv
+pg8000
+pymysql
+google-cloud-firestore
+pytz
+google-api-python-client
+oauth2client
+firebase-admin
+google-cloud-secret-manager
+google-auth

@@ -1,0 +1,1029 @@
+{
+	"info": {
+		"_postman_id": "6b6b6fd1-28c1-4864-a30b-740beb09e303",
+		"name": "AddAxis.ai ICS-AI-APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1248302",
+		"_collection_link": "https://b2bexperts.postman.co/workspace/AddAxis.ai~f6b9efbc-a46d-4d29-b2bc-25f651e5dc34/collection/29338586-6b6b6fd1-28c1-4864-a30b-740beb09e303?action=share&source=collection_link&creator=1248302"
+	},
+	"item": [
+		{
+			"name": "ICS-AI-DEV-APIs",
+			"item": [
+				{
+					"name": "ICS-AI-DEV-GS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// See here for examples of how to write tests",
+									"// https://learning.postman.com/docs/writing-scripts/intro-to-scripts/",
+									"// https://learning.postman.com/docs/writing-scripts/script-references/test-examples",
+									"const jsonData = pm.response.json();",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Code is set to 200\", function () {",
+									"    // Probably a redundant test because the Status is 200",
+									"    pm.expect(jsonData).to.be.an(\"object\");",
+									"    pm.expect(jsonData.code).to.eql(200);",
+									"});",
+									"pm.test(\"Has some data returned\", function () {",
+									"    pm.expect(jsonData.response).to.be.an(\"array\");",
+									"    pm.expect(jsonData.response).to.not.be.empty;",
+									"});",
+									"pm.test(\"One of our returned objects is a document\", function () {",
+									"    const responseType = jsonData.response.find(item => item.type === \"document\");",
+									"    pm.expect(responseType).to.be.an(\"object\");    ",
+									"});",
+									"pm.test(\"Description contains the word scrum\", function () {",
+									"    pm.expect(jsonData.response[0].description).to.include(\"scrum\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// The pre request scripts can set variables",
+									"// https://learning.postman.com/docs/writing-scripts/intro-to-scripts/",
+									"// https://learning.postman.com/docs/sending-requests/variables/#defining-variables-in-scripts"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://dev.ai.icanstudy.com/search?query=scrum&user_id=user2&user_stage=TT",
+							"protocol": "https",
+							"host": [
+								"dev",
+								"ai",
+								"icanstudy",
+								"com"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "scrum",
+									"description": "Required - Make this better"
+								},
+								{
+									"key": "user_id",
+									"value": "user2",
+									"description": "Required"
+								},
+								{
+									"key": "user_stage",
+									"value": "TT",
+									"description": "Required"
+								},
+								{
+									"key": "singleSummary",
+									"value": "",
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "allSummary",
+									"value": "",
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "topk",
+									"value": "",
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "",
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "threshold",
+									"value": "",
+									"description": "Optional",
+									"disabled": true
+								}
+							]
+						},
+						"description": "This runs a query against the data in the system to get the most relevany replies\n\nCurrent issues.\n\nIf you do not include the **query** variable, the system will creash\n\n``` html\n400 Bad RequestBad RequestThe browser (or proxy) sent a request that this server could not understand.\n ```"
+					},
+					"response": [
+						{
+							"name": "Successful Call Query Scrum",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://ics-ai-d-search-gatew-21pfjr60.ts.gateway.dev?query=scrum&user_id=user2&user_stage=TT",
+									"protocol": "https",
+									"host": [
+										"ics-ai-d-search-gatew-21pfjr60",
+										"ts",
+										"gateway",
+										"dev"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "scrum",
+											"description": "Required"
+										},
+										{
+											"key": "user_id",
+											"value": "user2",
+											"description": "Required"
+										},
+										{
+											"key": "user_stage",
+											"value": "TT",
+											"description": "Required"
+										},
+										{
+											"key": "singleSummary",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "allSummary",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "topk",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "type",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "threshold",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "access-control-allow-headers",
+									"value": "Content-Type"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET,POST,DELETE"
+								},
+								{
+									"key": "x-cloud-trace-context",
+									"value": "b19b8aa87157e7eb6d1e90a7691e91d7;o=1"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 05:30:39 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "14779"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"response\": [\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \"What is scrum? Scrum is an agile project management framework that helps teams structure and manage their work through a set of values, principles, and practices. Much like a rugby team (where it gets its name) training for the big game, scrum encourages teams to learn t hrough experiences, self -organize while working on a problem, and reflect on their wins and losses to continuously improve. While the scrum I’m talking about is most frequently used by software development teams, its principles and lessons can be applied t o all kinds of teamwork. This is one of the reasons scrum is so popular. Often thought of as an agile project management framework, scrum describes a set of meetings, tools, and roles that work in concert to help teams structure and manage their work. In this article, we’ll discuss how a traditional scrum framework is comprised with the help of the Scrum Guide and David West, CEO of Scrum.org. We’ll also include examples of how we see our customers stray from these fundamentals to fit their specific needs. For that, our own Megan Cook, Group Product Manager for Jira Software and former agile coach, will give tips and tricks in our Agile Coach video series:\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"8f576ff8-16c4-49b9-af68-d5028df9533f\",\n            \"description\": \" Technical excellence 10. Simplicity 11. Self-organized teams 12. Regulation, reflection and adjustme nt What is scrum? In short, scrum is a framework for effective collaborations among teams working on complex products. Scrum is a type of agile technology that consists of meetings, roles, and tools to help teams working on complex projects collaborate and better structure and manage their workload. Although it is most often used by software development teams, scrum can be beneficial to any team working toward a common goal. Who can benefit from scrum? While scrum can be useful for a wide variety of busines ses and projects, these are the most likely beneficiaries: • Complicated projects: Scrum methodology is ideal for projects that require teams to complete a backlog. Scrum breaks down each process into bite -sized chunks that can make a complex project easier. • Companies that value results: Scrum is also beneficial to companies that value results over the documented progress of the process. This is because scrum is focused on efficiency and innovation to drive results, rather than a detailed, rigid process. • Comp anies that cater to customers: Scrum can help companies that develop products in accordance with customer preferences and specifications. Scrum is adaptable to change, making it key when responding to customer requests.\",\n            \"stage\": 3,\n            \"title\": \"what-is-agile-scrum-methodology\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" 3. Sprint : A sprint is the actual time period when the scrum team works together to finish an increment. Two weeks is a pretty typical length for a sprint, though some teams find a week to be easier to scope or a month to be easier to deliver a valuable increment. Dave West, from Scrum.org advises that the more complex the work and the more unknowns, the shorter the sprint should be. But it’s really up to your team, and you shouldn’t be afraid to change it if it’s not working ! During this period, the scope can be re -negotiated between the product owner and the development team if necessary. This forms the crux of the empirical nature of scrum . All the events — from planning to retrospective — happen during the sprint. Once a certain time interval for a sprint is established, it has to remain consistent throughout the development period. This helps the team learn from past experiences and apply that insight to future sprints. 4. Daily scrum or stand up: This is a daily super -short meeting that happens at the same time (usually mornings) and a place to keep it simple. Many teams try to complete the meeting in 15 minutes, but that’s just a guideline. This meeting is also called a ‘daily stand -up’ emphasizing that it needs to be a qui ck one.\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"8f576ff8-16c4-49b9-af68-d5028df9533f\",\n            \"description\": \" Agile means “incremental, allowing teams to develop projects in small increments. Scrum is one of the many types of agile methodology, known for breaking projects down into sizable chunks called “sprints.” Agile scrum methodology is good for businesses that need to finish specific projects quickly. Agile scrum methodology is a project management system that relies on incremental development. Each iteration consists of two - to four- week sprints, where the goal of each sprint is to build the most important features first and come out with a potentially deliverable product. More features are built into the product in subsequent sprints and are adjusted based on stakeholder and customer feedback between sprints. Whereas other project management methods emphasize building an entire product in one operation from start to finish, agile scrum methodology focuses on delivering several itera tions of a product to provide stakeholders with the highest business value in the least amount of time. Agile scrum methodology has several benefits. First, it encourages products to be built faster, since each set of goals must be completed within each sprint’s time frame. It also requires frequent planning and goal setting, which helps the scrum team focus on the current sprint’s obj ectives and increase productivity. What is agile? Agile is a process that allows a team to more efficiently manage a project by breaking it down into several stages, each of which allows for consistent collaboration with stakeholders to promote steady improvements at every stage.\",\n            \"stage\": 3,\n            \"title\": \"what-is-agile-scrum-methodology\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" The organization of complex tasks into manageable user stories makes it ideal for difficult projects. Also, the clear demarcation of roles and planned events ensure that there is transparency and collective ownership thro ughout the development cycle. Quick releases keep the team motivated and the users happy as they can see progress in a short amount of time. However, scrum could take time to fully understand, especially if the development team is acclimatized to a typical waterfall model. The concepts of smaller iterations, daily scrum meetings, sprint reviews, and identifying a scrum master could be a challen ging cultural shift for a new team. But, the long -term benefits far outweigh the initial learning curve. Scrum’s success in developing complex hardware and software products across diverse industries and verticals makes it a compelling framework t o adopt for your organization .\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" Lean thinking reduces waste and focuses on essentials. The scrum framework is heur istic; it’s based on continuous learning and adjustment to fluctuating factors. It acknowledges that the team doesn’t know everything at the start of a project and will evolve through experience. Scrum is structured to help teams naturally adapt to changin g conditions and user requirements, with re -prioritization built into the process and short release cycles so your team can constantly learn and improve. While scrum is structured, it is not entirely rigid. Its execution can be tailored to the needs of an y organization. There are many theories about how exactly scrum teams must work in order to be successful. However, after more than a decade of helping agile teams get work done at Atlassian, we’ve learned that clear communication, transparency, and a dedi cation to continuous improvement should always remain at the center of whatever framework you choose. And the rest is up to you. The scrum framework The scrum framework outlines a set of values, principles, and practices that scrum teams follow to deliver a product or service. It details the members of a scrum team and their accountabilities, “artifacts” that define the product and work to create the product, and scrum ceremonies that guide the scrum team through work. Members of a scrum team A scrum team i s a small and nimble team dedicated to delivering committed product increments.\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"8f576ff8-16c4-49b9-af68-d5028df9533f\",\n            \"description\": \"• Agile and scrum are two similar project management systems with a few key differences. • Agile is more flexible and promotes leadership teams, while scrum is more rigid and promotes cross -functional teams. • Agile lets teams develop projects in small increments called “sprints” and allows for more effective collaborations among teams working on complex projects. • This article is for business owners and project managers who want to learn more about agile scrum methodology and how to implement it as a management process. Agile scrum methodology is used by companies of all sizes for its ability to pr ovide high -end collaboration and efficiency for project - based work. Agile and scrum are two different methods and can be used separately; however, their combined benefits make the agile scrum methodology the most popular use of agile. Here’s the complete g uide to agile scrum methodology. Did You Know ? Agile and scrum can be used separately, but their combined benefits make the methodology popular. How does agile scrum work? Agile scrum methodology is the combination of the agile philosophy and the scrum fra mework. Agile means “incremental, allowing teams to develop projects in small increments. Scrum is one of the many types of agile methodology, known for breaking projects down into sizable chunks called “sprints.\",\n            \"stage\": 3,\n            \"title\": \"what-is-agile-scrum-methodology\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" Members of a scrum team A scrum team i s a small and nimble team dedicated to delivering committed product increments. A scrum team’s size is typically small, at around 10 people, but it’s large enough to complete a substantial amount of work within a sprint. A scrum team needs three specific r oles: product owner, scrum master, and the development team. And because scrum teams are cross - functional, the development team includes testers, designers, UX specialists, and ops engineers in addition to developers. The scrum product owner Product own ers are the champions for their product. They are focused on understanding business, customer, and market requirements, then prioritizing the work to be done by the engineering team accordingly. Effective product owners: • Build and manage the product backlo g. • Closely partner with the business and the team to ensure everyone understands the work items in the product backlog. • Give the team clear guidance on which features to deliver next. • Decide when to ship the product with a predisposition towards more frequ ent delivery. The product owner is not always the product manager. Product owners focus on ensuring the development team delivers the most value to the business. Also, it's important that the product owner be an individual. No development team wants mixed guidance from multiple product owners. The scrum master Scrum masters are the champions of scrum within their teams.\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" For that, our own Megan Cook, Group Product Manager for Jira Software and former agile coach, will give tips and tricks in our Agile Coach video series: Agile vs. scrum People o ften think scrum and agile are the same thing because scrum is centered around continuous improvement, which is a core principle of agile. However, scrum is a framework for getting work done, whereas agile is a philosophy. The agile philosophy centers around continuous incremental improvement through small and frequent releases. You can’t really “go agile”, as it takes dedication from the whole team to change the way they think about delivering value to your customers. But you can use a framework like scrum to help you start thinking that way and to practice building agile principles into your everyday communication and work. The difference between agile and the definition of sc rum can be found in the Scrum guide and the Agile manifesto . The Agile manifesto outlines four values: • Individuals and interactions over processes and tools • Working software over comprehensive documentation • Customer collaboration over contract negotiation • Responding to change over following a plan The definition of scrum is based on empiricism and lean thinking. Empiricism says that knowledge comes from experience and that decisions are made based on what is observed. Lean thinking reduces waste and focuses on essentials.\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        },\n        {\n            \"content_id\": \"4b2cf1b9-792d-44a6-b646-481a5f9dd0b1\",\n            \"description\": \" However, this may not be realistic of other types of teams. Say you work on a server -based product that can only ship to your customers every quarter. You may still choose to work in 2 -week sprints, but your definition of ‘done’ may be finishing part of a larger version that you plan to ship together. But of course, the longer it takes to release software, the higher the risk that software will miss the mark. As you can tell, there are lots of variations, even within artifacts, that your team can choose to define. That’s why it’s important to be remain open to evolving how you maintain even your artifacts. Perhaps your definition of ‘done’ provides undo stress on your team, and you need to go back and pick a new definition. Scrum ceremonies or events The scrum framework includes scrum practices, ceremonies, and meetings that scrum teams perform on a regular basis. The agile ceremonies are where we see the most variations for teams. For example, some teams find doing all of these ceremonies cumbersome and repetitive, while others use them as a necessary check -in. Our advice is to start out using all of the ceremonies for two sprints and see how it feels. You can then perform a quick retro and see where you might need to adjust. Below is a list of all the key ceremonies a scrum team might partake in:\",\n            \"stage\": 3,\n            \"title\": \"Scrum\",\n            \"type\": \"document\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Failed call when query param is missing",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://ics-ai-d-search-gatew-21pfjr60.ts.gateway.dev?user_id=user2&user_stage=TT",
+									"protocol": "https",
+									"host": [
+										"ics-ai-d-search-gatew-21pfjr60",
+										"ts",
+										"gateway",
+										"dev"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "scrum",
+											"description": "Required",
+											"disabled": true
+										},
+										{
+											"key": "user_id",
+											"value": "user2",
+											"description": "Required"
+										},
+										{
+											"key": "user_stage",
+											"value": "TT",
+											"description": "Required"
+										},
+										{
+											"key": "singleSummary",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "allSummary",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "topk",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "type",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "threshold",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/html; charset=utf-8"
+								},
+								{
+									"key": "x-cloud-trace-context",
+									"value": "82bd478d1648c45a88cf2f8a434ea126;o=1"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 06:04:04 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "167"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "<!doctype html><html lang=en><title>400 Bad Request</title><h1>Bad Request</h1><p>The browser (or proxy) sent a request that this server could not understand.</p>"
+						},
+						{
+							"name": "Example - No userid",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://ics-ai-d-search-gatew-21pfjr60.ts.gateway.dev?query=scrum&user_stage=TT",
+									"protocol": "https",
+									"host": [
+										"ics-ai-d-search-gatew-21pfjr60",
+										"ts",
+										"gateway",
+										"dev"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "scrum",
+											"description": "Required - Make this better"
+										},
+										{
+											"key": "user_id",
+											"value": "user2",
+											"description": "Required",
+											"disabled": true
+										},
+										{
+											"key": "user_stage",
+											"value": "TT",
+											"description": "Required"
+										},
+										{
+											"key": "singleSummary",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "allSummary",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "topk",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "type",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "threshold",
+											"value": "",
+											"description": "Optional",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "x-cloud-trace-context",
+									"value": "79f68c70624352d074e74c589aa985d9;o=1"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 06:26:10 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "49"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 400,\n    \"response\": \"Please provide user id\"\n}"
+						}
+					]
+				},
+				{
+					"name": "ICS-AI-DEV-EVAL",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"user_consent\": \"True\",\r\n    \"request_type\": \"enabling\",\r\n    \"guided_reflection\": {\r\n        \"experience\": \"Briefly outline the experience. Make a brief note about whether it was good or bad or in between. I noticed I didn't finish the kolb's I started a few days ago.\",\r\n        \"reflection\": \"reflection\",\r\n        \"abstraction\": \"abstraction\",\r\n        \"experimentation\": \"experimentation\"\r\n    },\r\n    \"Mind-map-image-file\": [\r\n        \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://dev.ai.icanstudy.com/expertfeedback/request",
+							"protocol": "https",
+							"host": [
+								"dev",
+								"ai",
+								"icanstudy",
+								"com"
+							],
+							"path": [
+								"expertfeedback",
+								"request"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Failing Call",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user_id\": \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"user_consent\": \"True\",\r\n    \"request_type\": \"enabling\",\r\n    \"guided_reflection\": {\r\n        \"experience\": \"Briefly outline the experience. Make a brief note about whether it was good or bad or in between. I noticed I didn't finish the kolb's I started a few days ago.\",\r\n        \"reflection\": \"reflection\",\r\n        \"abstraction\": \"abstraction\",\r\n        \"experimentation\": \"experimentation\"\r\n    },\r\n    \"Mind-map-image-file\": [\r\n        \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://ics-evaluation-api-nv2ytaumqa-ts.a.run.app",
+									"protocol": "https",
+									"host": [
+										"ics-evaluation-api-nv2ytaumqa-ts",
+										"a",
+										"run",
+										"app"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/html; charset=utf-8"
+								},
+								{
+									"key": "X-Cloud-Trace-Context",
+									"value": "fea020167e56092d0c9eae88e723669c;o=1"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 06:09:56 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "265"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "<!doctype html><html lang=en><title>500 Internal Server Error</title><h1>Internal Server Error</h1><p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>"
+						}
+					]
+				},
+				{
+					"name": "ICS-AI-DEV-REFLECTION",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// See here for examples of how to write tests",
+									"// https://learning.postman.com/docs/writing-scripts/script-references/test-examples",
+									"const jsonData = pm.response.json();",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Code is set to 200\", function () {",
+									"    // Probably a redundant test because the Status is 200",
+									"    pm.expect(jsonData).to.be.an(\"object\");",
+									"    pm.expect(jsonData.code).to.eql(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\": \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\": \"2023-08-22 13:04:25\",\r\n    \"user_id\": \"user4\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\r\n        \"OAE\",\r\n        \"BOA\",\r\n        \"SOL\",\r\n        \"SOA\",\r\n        \"EUO\",\r\n        \"ETG\",\r\n        \"SBT\",\r\n        \"SAP\",\r\n        \"NMG\",\r\n        \"TOA\",\r\n        \"RRE\",\r\n        \"IOE\",\r\n        \"RSL\",\r\n        \"IAM\",\r\n        \"TWP\",\r\n        \"TOT\",\r\n        \"RSG\",\r\n        \"UPN\",\r\n        \"UTG\",\r\n        \"IPN\",\r\n        \"BTN\"\r\n    ],\r\n    \"experience\": \"Briefly outline the experience. Make a brief note about whether it was good or bad or in between. I noticed I didn't finish the kolb's I started a few days ago.\",\r\n    \"reflection\": \"reflection\",\r\n    \"abstraction\": \"abstraction\",\r\n    \"experimentation\": \"experimentation\",\r\n    \"Mind-map-image-file\": [\r\n        \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-reflection-pipeline-nv2ytaumqa-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-reflection-pipeline-nv2ytaumqa-ts",
+								"a",
+								"run",
+								"app"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful Call",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mainjob-ID\" : \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\" : \"2023-08-22 13:04:25\",\r\n    \"user_id\" : \"user4\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\"OAE\", \"BOA\", \"SOL\", \"SOA\", \"EUO\", \"ETG\", \"SBT\", \"SAP\", \"NMG\", \"TOA\", \"RRE\", \"IOE\", \"RSL\", \"IAM\", \"TWP\", \"TOT\", \"RSG\", \"UPN\", \"UTG\", \"IPN\", \"BTN\"],\r\n    \"experience\": \"Briefly outline the experience. Make a brief note about whether it was good or bad or in between. I noticed I didn't finish the kolb's I started a few days ago.\",\r\n    \"reflection\": \"reflection\",\r\n    \"abstraction\": \"abstraction\",\r\n    \"experimentation\": \"experimentation\",\r\n    \"Mind-map-image-file\": [\"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://ics-reflection-pipeline-nv2ytaumqa-ts.a.run.app",
+									"protocol": "https",
+									"host": [
+										"ics-reflection-pipeline-nv2ytaumqa-ts",
+										"a",
+										"run",
+										"app"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "access-control-allow-headers",
+									"value": "Content-Type"
+								},
+								{
+									"key": "access-control-allow-methods",
+									"value": "GET,POST,DELETE"
+								},
+								{
+									"key": "X-Cloud-Trace-Context",
+									"value": "49a7f80dff542ccc8fedb19f7d13df6b;o=1"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 06:11:30 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "97"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": 200,\n    \"response\": \"Reflection of user4 is processed and feedbacks are stored in firestore\"\n}"
+						}
+					]
+				},
+				{
+					"name": "ICS-AI-DEV-MINDMAP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// See here for examples of how to write tests",
+									"// https://learning.postman.com/docs/writing-scripts/script-references/test-examples",
+									"const jsonData = pm.response.json();",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Code is set to 200\", function () {",
+									"    // Probably a redundant test because the Status is 200",
+									"    pm.expect(jsonData).to.be.an(\"object\");",
+									"    pm.expect(jsonData.code).to.eql(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\": \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\": \"2023-08-22 13:04:25\",\r\n    \"user_id\": \"user4\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\r\n        \"OSG\",\r\n        \"MSG\",\r\n        \"UTS\"\r\n    ],\r\n    \"Mind-map-image-file\": \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\",\r\n    \"component_list\": [\r\n        \"KOLBS\",\r\n        \"3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-mind-map-pipeline-nv2ytaumqa-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-mind-map-pipeline-nv2ytaumqa-ts",
+								"a",
+								"run",
+								"app"
+							]
+						},
+						"description": "Review:\n\nThis code does not return JSON"
+					},
+					"response": [
+						{
+							"name": "Successful Call",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mainjob-ID\": \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\": \"2023-08-22 13:04:25\",\r\n    \"user_id\": \"user4\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\r\n        \"OSG\",\r\n        \"MSG\",\r\n        \"UTS\"\r\n    ],\r\n    \"Mind-map-image-file\": \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\",\r\n    \"component_list\": [\r\n        \"KOLBS\",\r\n        \"3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://ics-mind-map-pipeline-nv2ytaumqa-ts.a.run.app",
+									"protocol": "https",
+									"host": [
+										"ics-mind-map-pipeline-nv2ytaumqa-ts",
+										"a",
+										"run",
+										"app"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/html; charset=utf-8"
+								},
+								{
+									"key": "X-Cloud-Trace-Context",
+									"value": "9bab064d6415503c8c232135e83e2291;o=1"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 06:19:36 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "19"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "All process is done"
+						}
+					]
+				},
+				{
+					"name": "ICS-AI-DEV-FINALFEEDBACK",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\": \"1234-5678-91011-12\",\r\n    \"user_id\": \"user4\",\r\n    \"component_list\": [\r\n        \"KOLBS\",\r\n        \"3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-final-feedback-nv2ytaumqa-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-final-feedback-nv2ytaumqa-ts",
+								"a",
+								"run",
+								"app"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "failing call",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mainjob-ID\": \"1234-5678-91011-12\",\r\n    \"user_id\": \"user4\",\r\n    \"component_list\": [\r\n        \"KOLBS\",\r\n        \"3.7.1_Inheritance_1.jpg\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://ics-final-feedback-nv2ytaumqa-ts.a.run.app",
+									"protocol": "https",
+									"host": [
+										"ics-final-feedback-nv2ytaumqa-ts",
+										"a",
+										"run",
+										"app"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/html; charset=utf-8"
+								},
+								{
+									"key": "X-Cloud-Trace-Context",
+									"value": "83b3664984ad114ba759cca68a5244a6;o=1"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 25 Aug 2023 07:58:30 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Google Frontend"
+								},
+								{
+									"key": "Content-Length",
+									"value": "265"
+								},
+								{
+									"key": "Alt-Svc",
+									"value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+								}
+							],
+							"cookie": [],
+							"body": "<!doctype html><html lang=en><title>500 Internal Server Error</title><h1>Internal Server Error</h1><p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>"
+						}
+					]
+				}
+			],
+			"description": "### Introduction\n\nWelcome to the ICS-AI-DEV-APIs documentation for Postman collection. This comprehensive guide provides detailed insights and instructions on how to utilize and test the various APIs and sub-APIs encompassed within this collection.\n\n### Collection Overview\n\nThe ICS-AI-DEV-APIs collection comprises two primary APIs:\n\n1. **ICS-AI-Dev-GS**: Global Search API in Development environment.\n    \n2. **ICS-AI-Dev-EVAL**: Evaluation API in Development environment.\n    \n\nAdditionally, the ICS-AI-Dev-EVAL houses the following sub-APIs:\n\n- **ICS-AI-DEV-REFLECTION:** Endpoint of Reflection processing pipeline.\n    \n- **ICS-AI-DEV-MINDMAP:** Endpoint of Mindmap processing pipeline.\n    \n- **ICS-AI-DEV-FINALFEEDBACK:** Endpoint of Final Feedback processing pipeline.\n    \n\nThe provision of sub-domains allows for individualized testing, ensuring that each component of the API functions seamlessly and delivers the expected outcomes."
+		},
+		{
+			"name": "ICS-AI-TEST-APIs",
+			"item": [
+				{
+					"name": "ICS-AI-TEST-GS",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://test.ai.icanstudy.com/search?query=scrum&user_id=user2&user_stage=TT",
+							"protocol": "https",
+							"host": [
+								"test",
+								"ai",
+								"icanstudy",
+								"com"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "scrum",
+									"description": "Required"
+								},
+								{
+									"key": "user_id",
+									"value": "user2",
+									"description": "Required"
+								},
+								{
+									"key": "user_stage",
+									"value": "TT",
+									"description": "Required"
+								},
+								{
+									"key": "singleSummary",
+									"value": null,
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "allSummary",
+									"value": null,
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "topk",
+									"value": null,
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": null,
+									"description": "Optional",
+									"disabled": true
+								},
+								{
+									"key": "threshold",
+									"value": null,
+									"description": "Optional",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ICS-AI-TEST-EVAL",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"user_consent\": \"True\",\r\n    \"request_type\": \"enabling\",\r\n    \"guided_reflection\": {\r\n        \"experience\": \"feel difficult to extract the crucial concepts in atmospheric dynamics, especially in the grouping stage.\",\r\n        \"reflection\": \"highlight the keywords, find related information in the references\",\r\n        \"abstraction\": \"highlighting keywords makes me so confused because it just gives me the detailed information, not the general picture. However, when I count the frequency of keywords in the essay, I can feel how this keyword is important and make the chunking step easier. The keyword that appears more frequent tends to be more important. \",\r\n        \"experimentation\": \"focus on the crucial concepts by counting its frequency.\"\r\n    },\r\n    \"Mind-map-image-file\": [\"gs://ics-analysis-test-mindmaps/3.7.1_Inheritance_1.jpg\"]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://test.ai.icanstudy.com/expertfeedback/request",
+							"protocol": "https",
+							"host": [
+								"test",
+								"ai",
+								"icanstudy",
+								"com"
+							],
+							"path": [
+								"expertfeedback",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ICS-AI-TEST-REFLECTION",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\" : \"xxx\",\r\n    \"maineval-StartTime\" : \"2023-08-24 11:04:25\",\r\n    \"user_id\" : \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\"OAE\", \"BOA\", \"SOL\", \"SOA\", \"EUO\", \"ETG\", \"SBT\", \"SAP\", \"NMG\", \"TOA\", \"RRE\", \"IOE\", \"RSL\", \"IAM\", \"TWP\", \"TOT\", \"RSG\", \"UPN\", \"UTG\", \"IPN\", \"BTN\"],\r\n    \"experience\": \"feel difficult to extract the crucial concepts in atmospheric dynamics, especially in the grouping stage.\",\r\n    \"reflection\": \"highlight the keywords, find related information in the references\",\r\n    \"abstraction\": \"highlighting keywords makes me so confused because it just gives me the detailed information, not the general picture. However, when I count the frequency of keywords in the essay, I can feel how this keyword is important and make the chunking step easier. The keyword that appears more frequent tends to be more important. \",\r\n    \"experimentation\": \"focus on the crucial concepts by counting its frequency.\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-reflection-evaluation-pipeline-jjfeaywz4a-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-reflection-evaluation-pipeline-jjfeaywz4a-ts",
+								"a",
+								"run",
+								"app"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ICS-AI-TEST-MINDMAP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\" : \"1234-5678-91011-12\",\r\n    \"maineval-StartTime\" : \"2023-08-24 11:04:25\",\r\n    \"user_id\" : \"user0\",\r\n    \"user_stage\": \"RS\",\r\n    \"request_type\": \"enabling\",\r\n    \"patterns\": [\"OSG\", \"MSG\", \"UTS\"],\r\n    \"Mind-map-image-file\": \"gs://ics-analysis-dev-mindmaps-uscentral/3.7.1_Inheritance_1.jpg\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-mind-map-evaluation-pipeline-jjfeaywz4a-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-mind-map-evaluation-pipeline-jjfeaywz4a-ts",
+								"a",
+								"run",
+								"app"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ICS-AI-TEST-FINALFEEDBACK",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mainjob-ID\" : \"1234-5678-91011-12\",\r\n    \"user_id\" : \"user4\",\r\n    \"component_list\": [\"KOLBS\", \"3.7.1_Inheritance_1.jpg\"]\r\n}\r\n// In final feedback function, we will check whether the components are all done, If so, call back https://test.learning.icanstudy.com/api/expertfeedback/created",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ics-final-feedback-jjfeaywz4a-ts.a.run.app",
+							"protocol": "https",
+							"host": [
+								"ics-final-feedback-jjfeaywz4a-ts",
+								"a",
+								"run",
+								"app"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### Introduction\n\nWelcome to the ICS-AI-TEST-APIs documentation for Postman collection. This comprehensive guide provides detailed insights and instructions on how to utilize and test the various APIs and sub-APIs encompassed within this collection.\n\n### Collection Overview\n\nThe ICS-AI-DEV-APIs collection comprises two primary APIs:\n\n1. **ICS-AI-TEST-GS**: Global Search API in Test environment.\n    \n2. **ICS-AI-TEST-EVAL**: Evaluation API in Test environment.\n    \n\nAdditionally, the ICS-AI-Dev-EVAL houses the following sub-APIs:\n\n- **ICS-AI-TEST-REFLECTION:** Endpoint of Reflection processing pipeline.\n    \n- **ICS-AI-TEST-MINDMAP:** Endpoint of Mindmap processing pipeline.\n    \n- **ICS-AI-TEST-FINALFEEDBACK:** Endpoint of Final Feedback processing pipeline.\n    \n\nThe provision of sub-domains allows for individualized testing, ensuring that each component of the API functions seamlessly and delivers the expected outcomes."
+		}
+	]
+}

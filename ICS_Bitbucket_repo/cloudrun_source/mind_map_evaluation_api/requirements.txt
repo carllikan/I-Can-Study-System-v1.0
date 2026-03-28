@@ -1,0 +1,13 @@
+Flask==3.0.0
+firebase-admin
+google-api-python-client
+google-auth
+google-cloud-aiplatform
+google-cloud-secret-manager
+google-cloud-storage==2.11.0
+google-cloud-tasks
+oauth2client
+Pillow==10.0.1
+pyarrow
+requests==2.31.0
+transformers==4.36.0

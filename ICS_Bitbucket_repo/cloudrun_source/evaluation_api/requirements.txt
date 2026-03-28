@@ -1,0 +1,19 @@
+Flask==3.0.0
+requests==2.31.0
+sqlalchemy==2.0.21
+python-dotenv==1.0.0
+# pg8000
+pymysql==1.1.1
+pytz==2023.3.post1
+firebase-admin
+google-api-python-client
+google-auth
+google-cloud-aiplatform
+google-cloud-secret-manager
+google-cloud-storage==2.11.0
+google-cloud-tasks
+oauth2client
+Pillow==10.0.1
+pyarrow
+requests==2.31.0
+transformers==4.36.0
