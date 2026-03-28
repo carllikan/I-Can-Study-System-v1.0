@@ -1,0 +1,12 @@
+functions-framework==3.*
+google-cloud-videointelligence
+google-cloud-storage
+asyncio==3.4.3
+google-api-python-client
+firebase-admin
+oauth2client
+google-cloud-secret-manager
+google-auth
+moviepy
+google-cloud-speech
+google-api-core

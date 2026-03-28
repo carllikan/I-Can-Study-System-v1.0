@@ -1,0 +1,5 @@
+google-api-python-client
+oauth2client
+firebase-admin
+google-cloud-secret-manager
+google-auth

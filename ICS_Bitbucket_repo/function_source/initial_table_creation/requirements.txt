@@ -1,0 +1,9 @@
+# Function dependencies, for example:
+# package>=version
+sqlalchemy
+pymysql
+google-api-python-client
+firebase-admin
+oauth2client
+google-cloud-secret-manager
+google-auth

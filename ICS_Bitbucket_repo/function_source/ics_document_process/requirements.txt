@@ -1,0 +1,16 @@
+functions-framework==3.*
+Flask
+pinecone-client
+retrying
+tiktoken
+openai
+langchain
+langchain-community
+PyPDF2
+nltk
+gcsfs
+google-api-python-client
+firebase-admin
+oauth2client
+google-cloud-secret-manager
+google-auth

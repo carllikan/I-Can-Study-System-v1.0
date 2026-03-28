@@ -1,0 +1,12 @@
+functions-framework==3.*
+google-cloud-storage
+firebase-admin
+openai
+sentence-transformers
+numpy
+scikit-learn
+pinecone-client
+google-api-python-client
+oauth2client
+google-cloud-secret-manager
+google-auth
