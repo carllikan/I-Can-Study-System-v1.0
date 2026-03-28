@@ -1,0 +1,29 @@
+{
+    "collection_name": "function_configuration",
+    "documents": [
+        {
+            "document_name": "project_variables",
+            "document_json": {
+                "pinecone_api_key": "pinecone_api_key_name",
+                "pinecone_env": "us-west1-gcp",
+                "pinecone_index": "ics-ai-vector-index",
+                "openai_api_key": "openai_api_key_name",
+                "embedding_model": "text-embedding-ada-002",
+                "hf_access_token":"hf_access_token_name",
+                "aws_access_key_id":"aws_access_key_name",
+                "aws_secret_access_key":"aws_secret_access_key_name",
+        
+                "sqldb_user": "root",
+                "region": "us-west2",
+                "timezone": "Australia/Sydney",
+                "sqldb_password": "cloud_sql_key_name",
+                "sqldb_database": "ics-ai-jobs",
+                "sqldb_instance": "ics-test-mysql",
+        
+                "api_key": "api_key_name",
+                "task_queue_mindmap": "MindMapProcess-Queue",
+                "task_queue_reflection": "ReflectionProcess-Queue"
+            }
+        }
+    ]
+}

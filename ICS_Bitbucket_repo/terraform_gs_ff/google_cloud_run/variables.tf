@@ -1,0 +1,12 @@
+variable "service_name"          { type = string }
+variable "region"                { type = string }
+variable "image_path"            { type = string }
+variable "project_id"            { type = string }
+variable "deploy_cloud_run"      { type = bool }
+variable "allocated_memory"      { type = string }
+variable "timeout_seconds"       { type = number }
+variable "sql_connection_name"   { type = string }
+variable "max_instance"          { type = string }
+variable "min_instance"          { type = string }
+variable "allocated_cpu"         { type = string }
+variable "ingress"               { type = string }
