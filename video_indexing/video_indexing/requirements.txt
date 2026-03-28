@@ -1,0 +1,11 @@
+# Function dependencies, for example:
+# package>=version
+google-cloud-videointelligence
+google-cloud-storage
+firebase-admin
+Flask
+openai==0.27.8
+sentence-transformers==2.2.2
+numpy==1.21.6
+scikit-learn==1.0.2
+flask==2.3.2
