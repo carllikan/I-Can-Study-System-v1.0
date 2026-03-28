@@ -1,0 +1,85 @@
+#!/bin/sh
+
+# To activate this type the following from the rood dir of this repo
+# git config core.hookspath $(pwd)/bash_scripts
+
+# het the dir of the script for the configuration
+if [ -L $0 ] ; then
+    ME=$(readlink $0)
+else
+    ME=$0
+fi
+SCRIPT_DIR=$(dirname $ME)
+
+# Get a list of all the changed python files
+changedPythonFiles=`git diff --cached --name-only --diff-filter=AM | egrep ".py$"`
+
+# Fail on commit on warnings or errors
+guidelinesBlockingWarnings=0
+guidelinesBlockingErrors=0
+guidelinesOK=0
+
+#Returned value
+r=0
+
+if [ ! -z "$changedPythonFiles" ]; then
+    echo "======================================="
+    echo "     RUNNING prospector (style check) "
+    echo "======================================="
+
+    LOCATE_FILE=`which prospector`
+    if [ "" == "$LOCATE_FILE" ]; then
+        pip install prospector
+    fi
+
+    # I have included some config file access
+    # https://prospector.landscape.io/en/master/usage.html
+    # https://prospector.landscape.io/en/master/profiles.html
+    prospector --profile $SCRIPT_DIR/prospector.yaml --pylint-config-file $SCRIPT_DIR/pylintrc $changedPythonFiles | grep -v "pylint: import-error"
+    guidelinesOK=$?
+
+    echo "======================================="
+    echo "     RUNNING bandit (security) "
+    echo "======================================="
+
+    LOCATE_FILE=`which bandit`
+    if [ "" == "$LOCATE_FILE" ]; then
+        pip install bandit
+    fi
+    bandit $changedPythonFiles
+
+
+    echo "======================================="
+    echo "  RUNNING jscpd (copy-paste detection) "
+    echo "======================================="
+    LOCATE_FILE=`which jscpd`
+    if [ "" == "$LOCATE_FILE" ]; then
+        npm install -g jscpd
+    fi
+
+    # Just need to pass the directories to jscpd
+    dirList=''
+    for pyFile in $changedPythonFiles; do
+        pyDir=$(dirname $pyFile)
+        dirList="$dirList $pyDir" 
+    done
+    normDirList=`echo $dirList | xargs -n1 | sort -u | xargs`
+    echo $normDirList
+    
+    jscpd --max-lines=10000 --max-size=10000kb $normDirList
+else
+    echo "==========================================================="
+    echo "No python files have changed - no static analysis necessary"
+    echo "==========================================================="
+fi
+
+if [ $guidelinesOK -ne 0 ]; then
+    >&2 echo "\033[31mYour code does not respect the agreed standards, you should fix it\033[00m"
+
+    if [ $guidelinesBlockingErrors -eq 1 ] || [ $guidelinesBlockingWarnings -eq 1 ]; then
+        r=1
+    fi
+fi
+
+exit $r
+

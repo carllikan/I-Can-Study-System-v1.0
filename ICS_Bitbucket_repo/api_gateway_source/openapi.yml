@@ -1,0 +1,77 @@
+# openapi2-run.yaml
+swagger: '2.0'
+info:
+  title: ics-search-restapi-gateway optional-string
+  description: Sample API on API Gateway with a Cloud Run backend
+  version: 1.0.0
+schemes:
+- https
+produces:
+- application/json
+
+paths:
+  /expertfeedback/request:
+    post:
+      summary: Evaluation Cloud Run
+      operationId: Evaluation
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: string
+      security:
+        - api_key: []
+      x-google-backend:
+        address: EVALUATION_API_CLOUD_RUN_URL
+        deadline: 600.0
+
+  /search:
+    get:
+      summary: Global Search Cloud Run
+      operationId: Global Search
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: string
+      security:
+        - api_key: []
+      x-google-backend:
+        address: GLOBAL_SEARCH_CLOUD_RUN_URL
+        deadline: 600.0
+
+  /expertfeedback/mindmap:
+    post:
+      summary: Mindmap Cloud Run
+      operationId: Mindmap
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: string
+      security:
+        - api_key: []
+      x-google-backend:
+        address: MIND_MAP_CLOUD_RUN_URL
+        deadline: 600.0
+
+  /expertfeedback/reflection:
+    post:
+      summary: Reflection Cloud Run
+      operationId: Reflection
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: string
+      security:
+      - api_key: []
+      x-google-backend:
+        address: REFLECTION_CLOUD_RUN_URL
+        deadline: 600.0
+
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "X-API-Key"
+    in: "header"

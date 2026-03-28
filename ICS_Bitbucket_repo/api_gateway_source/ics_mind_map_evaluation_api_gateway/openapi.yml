@@ -1,0 +1,24 @@
+# openapi2-run.yaml
+# apigateway: ics-ai-t-mmapi-gw
+swagger: '2.0'
+info:
+  title: ics_mind_map_evaluation_api_gateway 
+  description: Sample API on API Gateway with a Cloud Run backend
+  version: 1.0.0
+schemes:
+- https
+produces:
+- application/json
+x-google-backend:
+  address: ${CLOUD_RUN_URL}
+  deadline: 60.0
+paths:
+  /:
+    post:
+      summary: Cloud Run hello world
+      operationId: hello
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: string
