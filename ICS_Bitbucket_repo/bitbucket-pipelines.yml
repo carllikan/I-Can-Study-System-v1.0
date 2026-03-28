@@ -1,0 +1,828 @@
+image: addaxis/builder-image:3
+definitions:
+  services:
+    docker:
+      memory: 2048
+  
+  steps:
+
+    - step: &deploy-basic-ics-resources
+        name: Deploy necessary resources before deploying cloud run services
+        script:
+          - ls -la
+          - source build.env        
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          - echo "Enabling services now..."
+
+          # terraform setup
+          - export T_FOLDER="terraform_basis"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          - echo "Deploy basic resources including cloud function, storage buckets, cloud sql, secret managers"
+          # first run of terraform deployment
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json" 
+            -var cloud_sql_password="$CLOUD_SQL_PASSWORD"
+            -var openai_api_key="$OPENAI_API_KEY"
+            -var pinecone_api_key="$PINECONE_API_KEY"
+            -var hf_access_token="$HF_ACCESS_TOKEN"
+            -var aws_access_key_id="$AWS_ACCESS_KEY_ID"
+            -var aws_secret_access_key="$AWS_SECRET_ACCESS_KEY"
+            -var api_key_password="$API_KEY"
+          
+          # intitialize the firestore environment collection, should be done before creating sql tables
+          - gcloud functions call initial_firestore_config --region=$REGION --project=$PROJECT --data="$(cat ./vars/${ENV}/env_config.json)"
+
+          # create cloud sql tables with cloud function
+          - gcloud functions call initial_table_creation --region=$REGION --project=$PROJECT
+
+
+    - step: &deploy-gloabl-search-and-final-feedback-cloud-run
+        name: Deploy gloabl search and final feedback cloud run services
+        services:
+          - docker
+        script:
+          - ls -la
+          - source build.env        
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          # Authenticate Docker with gcloud
+          - echo 'y' | gcloud auth configure-docker $REGION-docker.pkg.dev
+          
+          # build and push image for global search api
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh global_search_api OPENAI_API_KEY=$OPENAI_API_KEY PINECONE_API_KEY=$PINECONE_API_KEY PINECONE_ENV=$PINECONE_ENV
+          - export global_search_api_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/global-search-api:latest"
+              
+          # build and push image for final_feedback
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh final_feedback CALLBACK_URL=$CALLBACK_URL
+          - export final_feedback_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/final-feedback:latest"
+
+
+          # cd back to terraform 
+          - export T_FOLDER="terraform_gs_ff"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          # deploy global seach api and final feedback cloud run
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json"
+            -var global_search_api_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var final_feedback_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var global_search_api_image_path="$global_search_api_image_path" 
+            -var final_feedback_image_path="$final_feedback_image_path"
+
+    - step: &deploy-reflection-evaluation-pipeline-cloud-run
+        name: Build reflection evaluation pipeline cloud run
+        services:
+          - docker
+        script:
+          - source build.env
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          # Authenticate Docker with gcloud
+          - echo 'y' | gcloud auth configure-docker $REGION-docker.pkg.dev
+
+          ########### FINAL_FEEDBACK_CLOUD_RUN_URL ##############################
+          - export FINAL_FEEDBACK_CLOUD_RUN_URL=$(gcloud run services describe ics-final-feedback --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$FINAL_FEEDBACK_CLOUD_RUN_URL"
+          
+          # build and push image for reflection_evaluation_pipeline
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh reflection_evaluation_pipeline FINAL_FEEDBACK_CLOUD_RUN_URL=$FINAL_FEEDBACK_CLOUD_RUN_URL
+          - export reflection_evaluation_pipeline_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/reflection-evaluation-pipeline:latest"
+
+          # cd back to terraform 
+          - export T_FOLDER="terraform_rfep"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          # 3rd time run to deploy reflection evaluation pipeline
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json"
+            -var reflection_evaluation_pipeline_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var reflection_evaluation_pipeline_image_path="$reflection_evaluation_pipeline_image_path"
+
+    - step: &deploy-mindmap-evaluation-pipeline-cloud-run
+        name: Deploy mind map evaluation pipeline cloud run
+        services:
+          - docker
+        script:
+          - source build.env
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          # Authenticate Docker with gcloud
+          - echo 'y' | gcloud auth configure-docker $REGION-docker.pkg.dev
+
+          ########### FINAL_FEEDBACK_CLOUD_RUN_URL ##############################
+          - export FINAL_FEEDBACK_CLOUD_RUN_URL=$(gcloud run services describe ics-final-feedback --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$FINAL_FEEDBACK_CLOUD_RUN_URL"
+          
+          # build and push image for mind_map_evaluation_pipeline
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh mind_map_evaluation_pipeline AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY HF_ACCESS_TOKEN=$HF_ACCESS_TOKEN FINAL_FEEDBACK_CLOUD_RUN_URL=$FINAL_FEEDBACK_CLOUD_RUN_URL
+          - export mind_map_evaluation_pipeline_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/mind-map-evaluation-pipeline:latest"
+
+          - export T_FOLDER="terraform_mmep"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          # deploy mind map evaluation pipeline cloud run
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json"
+            -var mind_map_evaluation_pipeline_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var mind_map_evaluation_pipeline_image_path="$mind_map_evaluation_pipeline_image_path"
+
+    - step: &deploy-remained-cloud-run-resources
+        name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+        services:
+          - docker
+        script:
+          - ls -la
+          - source build.env   
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          # Authenticate Docker with gcloud
+          - echo 'y' | gcloud auth configure-docker $REGION-docker.pkg.dev
+          
+          # read cloud run url
+          - export ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL=$(gcloud run services describe ics-mind-map-evaluation-pipeline --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL"
+
+          - export ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL=$(gcloud run services describe ics-reflection-evaluation-pipeline --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL"
+
+          # read image paths
+          - export global_search_api_image_path="gcr.io/${PROJECT}/global_search_api:latest"
+          - echo "$global_search_api_image_path"
+
+          - export final_feedback_image_path="gcr.io/${PROJECT}/final_feedback:latest"
+          - echo "$final_feedback_image_path"
+
+          - export reflection_evaluation_pipeline_image_path="gcr.io/${PROJECT}/reflection_evaluation_pipeline:latest"
+          - echo "$reflection_evaluation_pipeline_image_path"
+
+
+          # build and push image for mind_map_evaluation_api
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh mind_map_evaluation_api ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL=$ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL
+          - export mind_map_evaluation_api_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/mind-map-evaluation-api:latest"
+          
+          # build and push image for reflection_evaluation_api
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh reflection_evaluation_api ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL=$ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL
+          - export export reflection_evaluation_api_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/reflection-evaluation-api:latest"
+
+          # build and push image for evaluation_api
+          - $BITBUCKET_CLONE_DIR/bash_scripts/build_images.sh evaluation_api REF_URL=$ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL MM_URL=$ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL
+          - export evaluation_api_image_path="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-artifacts/evaluation-api:latest"
+
+
+          # cd back to the terraform directory to deploy terraform
+          # terraform setup
+          - echo "Deploy mind map evaluation api; relfection evaluation api; and evaluation api"
+          - export T_FOLDER="terraform_remains"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          # deploy reflection/mindmap evaluation api and evaluation api cloud run
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply
+            -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json"
+            -var evaluation_api_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var mind_map_evaluation_api_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var reflection_evaluation_api_sql_connection_name="$PROJECT:$REGION:ics-test-mysql"
+            -var mind_map_evaluation_api_image_path="$mind_map_evaluation_api_image_path"
+            -var reflection_evaluation_api_image_path="$reflection_evaluation_api_image_path"
+            -var evaluation_api_image_path="$evaluation_api_image_path"
+
+    - step: &deploy-evaluation-api-gateway
+        name: Deploy evaluation api gateway
+        script:
+          - source build.env
+          # execute gcloud setup
+          - source bash_scripts/setup_gcloud.sh
+          
+          # read cloud run url
+          - export ICS_GLOBAL_SEARCH_CLOUD_RUN_URL=$(gcloud run services describe ics-global-search-api --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_GLOBAL_SEARCH_CLOUD_RUN_URL"  
+
+          - export ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL=$(gcloud run services describe ics-mind-map-evaluation-pipeline --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_MIND_MAP_EVALUATION_CLOUD_RUN_URL"
+
+          - export ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL=$(gcloud run services describe ics-reflection-evaluation-pipeline --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_REFLECTION_EVALUATION_CLOUD_RUN_URL"
+
+          - export ICS_EVALUATION_API_CLOUD_RUN_URL=$(gcloud run services describe ics-evaluation-api --platform=managed --region=$REGION --format='value(status.url)')
+          - echo "$ICS_EVALUATION_API_CLOUD_RUN_URL"
+          
+          # rewrite the yml for all gateways 
+          - cd $BITBUCKET_CLONE_DIR/api_gateway_source
+          # in stall pip 
+          - apt-get update
+          - apt-get install python3-pip -y
+          - pip install python-dotenv
+          - python3 convert_yml.py
+
+          # cd back to the terraform directory and run terraform apply
+          - export T_FOLDER="terraform_gatew"
+          - source $BITBUCKET_CLONE_DIR/bash_scripts/setup_terraform.sh
+          # deploy evaluation api gateway
+          - terraform init -input=false -backend-config="bucket=$BUCKET"
+          - >
+            terraform apply
+            -auto-approve
+            -var-file="./vars/${ENV}/config.tfvars.json"
+            -var deploy_api_gateway=true
+          
+          - rm $BITBUCKET_CLONE_DIR/api_gateway_source/ics_evaluation_api_gateway/openapi.yml
+          # enable api service for api gateway
+          # Capture the output of the command into SERVICE variable
+          - SERVICE=$(gcloud endpoints services list --format="value(NAME)")
+
+          # Enable the service for the specified project
+          - gcloud services enable "${SERVICE}" --project="${PROJECT}"
+
+
+
+pipelines:
+  branches:
+    master:
+
+      ############################################ Dev Environment deployment #####################################################
+      - step: 
+          name: Setup ics-analysis-dev
+          script:
+            - echo "Setup ics-analysis-dev"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY_DEV}"                                           >> build.env
+            - echo "export CALLBACK_URL=${DEV_CALLBACK_URL}"                                >> build.env
+          artifacts:
+            - build.env
+       
+      - step:
+          name: Deploy necessary resources before deploying cloud run services
+          <<: *deploy-basic-ics-resources
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+      - step:
+          name: Deploy evaluation api gateway
+          <<: *deploy-evaluation-api-gateway
+      
+      ############################################ Test Environment deployment #####################################################
+      - step: 
+          name: Setup ics-analysis-test
+          script:
+            - echo "Setup ics-analysis-test"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-test"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-test"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_TEST}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_TEST}"                    >> build.env
+            - echo "export REGION=${TEST_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY}"                                               >> build.env
+            - echo "export CALLBACK_URL=${TEST_CALLBACK_URL}"                                >> build.env
+          artifacts:
+            - build.env
+       
+      - step:
+          name: Deploy necessary resources before deploying cloud run services
+          <<: *deploy-basic-ics-resources
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+      - step:
+          name: Deploy evaluation api gateway
+          <<: *deploy-evaluation-api-gateway
+
+      ############################################ Pre-prod Environment deployment #####################################################
+      - step: 
+          name: Setup ics-analysis-preprod
+          script:
+            - echo "Setup ics-analysis-preprod"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-preprod"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-preprod"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_PREPROD}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_PREPROD}"                    >> build.env
+            - echo "export REGION=${PREPROD_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY_PREPROD}"                                       >> build.env
+            - echo "export CALLBACK_URL=${PREPROD_CALLBACK_URL}"                             >> build.env
+          artifacts:
+            - build.env
+       
+      - step:
+          name: Deploy necessary resources before deploying cloud run services
+          <<: *deploy-basic-ics-resources
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+      - step:
+          name: Deploy evaluation api gateway
+          deployment: ics-analysis-dev
+          <<: *deploy-evaluation-api-gateway
+
+  custom:
+
+############################ Dev Environment ics-analysis-dev ############################
+    deploy-ics-analysis-dev:
+      - step: 
+          name: Setup ics-analysis-dev
+          script:
+            - echo "Setup ics-analysis-dev"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY_DEV}"                                           >> build.env
+            - echo "export CALLBACK_URL=${DEV_CALLBACK_URL}"                                >> build.env
+          artifacts:
+            - build.env
+       
+      - step:
+          name: Deploy necessary resources before deploying cloud run services
+          <<: *deploy-basic-ics-resources
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+      - step:
+          name: Deploy evaluation api gateway
+          <<: *deploy-evaluation-api-gateway
+
+############################ Test Environment ics-analysis-test ############################
+    # deploy-ics-analysis-test:
+    #   - step: 
+    #       name: Setup ics-analysis-test
+    #       script:
+    #         - echo "Setup ics-analysis-test"
+    #         - rm -f build.env
+    #         - echo "export ENV=ics-analysis-test"                                            >> build.env
+    #         - echo "export PROJECT=ics-analysis-test"                                        >> build.env
+    #         - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_TEST}"          >> build.env
+    #         - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_TEST}"                    >> build.env
+    #         - echo "export REGION=${TEST_REGION}"                                            >> build.env
+    #         - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+    #         - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+    #         - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+    #         - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+    #         - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+    #         - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+    #         - echo "export API_KEY=${API_KEY}"                                               >> build.env
+    #         - echo "export CALLBACK_URL=${TEST_CALLBACK_URL}"                                >> build.env
+    #       artifacts:
+    #         - build.env
+       
+    #   - step:
+    #       name: Deploy necessary resources before deploying cloud run services
+    #       <<: *deploy-basic-ics-resources
+
+    #   - step:
+    #       name: Deploy gloabl search and final feedback cloud run services
+    #       <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+    #   - step:
+    #       name: Build reflection evaluation pipeline cloud run
+    #       <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy mind map evaluation pipeline cloud run
+    #       <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+    #       <<: *deploy-remained-cloud-run-resources
+
+    #   - step:
+    #       name: Deploy evaluation api gateway
+    #       <<: *deploy-evaluation-api-gateway
+
+############################ Cloud Run Resources Test Environment ############################
+    deploy-cloud-run-resources-test:
+      - step: 
+          name: Setup ics-analysis-test
+          script:
+            - echo "Setup ics-analysis-test"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-test"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-test"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_TEST}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_TEST}"                    >> build.env
+            - echo "export REGION=${TEST_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY}"                                               >> build.env
+            - echo "export CALLBACK_URL=${TEST_CALLBACK_URL}"                                >> build.env
+          artifacts:
+            - build.env
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+############################ Preprod Environment ics-analysis-preprod ############################
+    # deploy-ics-analysis-preprod:
+    #   - step: 
+    #       name: Setup ics-analysis-preprod
+    #       script:
+    #         - echo "Setup ics-analysis-preprod"
+    #         - rm -f build.env
+    #         - echo "export ENV=ics-analysis-preprod"                                            >> build.env
+    #         - echo "export PROJECT=ics-analysis-preprod"                                        >> build.env
+    #         - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_PREPROD}"          >> build.env
+    #         - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_PREPROD}"                    >> build.env
+    #         - echo "export REGION=${PREPROD_REGION}"                                            >> build.env
+    #         - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+    #         - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+    #         - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+    #         - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+    #         - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+    #         - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+    #         - echo "export API_KEY=${API_KEY_PREPROD}"                                       >> build.env
+    #         - echo "export CALLBACK_URL=${PREPROD_CALLBACK_URL}"                             >> build.env
+    #       artifacts:
+    #         - build.env
+       
+    #   - step:
+    #       name: Deploy necessary resources before deploying cloud run services
+    #       <<: *deploy-basic-ics-resources
+
+    #   - step:
+    #       name: Deploy gloabl search and final feedback cloud run services
+    #       <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+    #   - step:
+    #       name: Build reflection evaluation pipeline cloud run
+    #       <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy mind map evaluation pipeline cloud run
+    #       <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+    #       <<: *deploy-remained-cloud-run-resources
+
+    #   - step:
+    #       name: Deploy evaluation api gateway
+    #       <<: *deploy-evaluation-api-gateway
+
+############################ Cloud Run Resources Preprod Environment ############################
+    deploy-cloud-run-resources-preprod:
+      - step: 
+          name: Setup ics-analysis-preprod
+          script:
+            - echo "Setup ics-analysis-preprod"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-preprod"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-preprod"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_PREPROD}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_PREPROD}"                    >> build.env
+            - echo "export REGION=${PREPROD_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY_PREPROD}"                                       >> build.env
+            - echo "export CALLBACK_URL=${PREPROD_CALLBACK_URL}"                             >> build.env
+          artifacts:
+            - build.env
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+############################ Prod Environment ics-analysis-prod ############################
+    # deploy-ics-analysis-prod:
+    #   - step: 
+    #       name: Setup ics-analysis-prod
+    #       script:
+    #         - echo "Setup ics-analysis-prod"
+    #         - rm -f build.env
+    #         - echo "export ENV=ics-analysis-prod"                                            >> build.env
+    #         - echo "export PROJECT=ics-analysis-prod"                                        >> build.env
+    #         - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_PROD}"          >> build.env
+    #         - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_PROD}"                    >> build.env
+    #         - echo "export REGION=${PROD_REGION}"                                            >> build.env
+    #         - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+    #         - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+    #         - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+    #         - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+    #         - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+    #         - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+    #         - echo "export API_KEY=${API_KEY_PROD}"                                          >> build.env
+    #         - echo "export CALLBACK_URL=${PROD_CALLBACK_URL}"                                >> build.env
+    #       artifacts:
+    #         - build.env
+       
+    #   - step:
+    #       name: Deploy necessary resources before deploying cloud run services
+    #       <<: *deploy-basic-ics-resources
+
+    #   - step:
+    #       name: Deploy gloabl search and final feedback cloud run services
+    #       <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+    #   - step:
+    #       name: Build reflection evaluation pipeline cloud run
+    #       <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy mind map evaluation pipeline cloud run
+    #       <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+    #   - step:
+    #       name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+    #       <<: *deploy-remained-cloud-run-resources
+
+    #   - step:
+    #       name: Deploy evaluation api gateway
+    #       <<: *deploy-evaluation-api-gateway
+
+############################ Cloud Run Resources Prod Environment ############################
+    deploy-cloud-run-resources-prod:
+      - step: 
+          name: Setup ics-analysis-prod
+          script:
+            - echo "Setup ics-analysis-prod"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-prod"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-prod"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_PROD}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_PROD}"                    >> build.env
+            - echo "export REGION=${PROD_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export API_KEY=${API_KEY_PROD}"                                          >> build.env
+            - echo "export CALLBACK_URL=${PROD_CALLBACK_URL}"                                >> build.env
+          artifacts:
+            - build.env
+
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+      - step:
+          name: Build reflection evaluation pipeline cloud run
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+
+############################ Individual resources deployment for DEV environment  ############################   
+    deploy-basic-ics-resources-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export API_KEY=${API_KEY_DEV}"                                           >> build.env
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy necessary resources before deploying cloud run services
+          <<: *deploy-basic-ics-resources
+    
+    deploy-gloabl-search-and-final-feedback-cloud-run-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export OPENAI_API_KEY=${OPENAI_API_KEY}"                                 >> build.env
+            - echo "export PINECONE_API_KEY=${PINECONE_API_KEY}"                             >> build.env
+            - echo "export PINECONE_ENV=${PINECONE_ENV}"                                     >> build.env
+            - echo "export CALLBACK_URL=${DEV_CALLBACK_URL}"                                 >> build.env
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy gloabl search and final feedback cloud run services
+          <<: *deploy-gloabl-search-and-final-feedback-cloud-run
+
+    deploy-reflection-evaluation-pipeline-cloud-run-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export CLOUD_SQL_PASSWORD=${CLOUD_SQL_PASSWORD}"                         >> build.env
+            
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy cloud run for reflection evaluation pipeline
+          <<: *deploy-reflection-evaluation-pipeline-cloud-run
+    
+    deploy-mindmap-evaluation-pipeline-cloud-run-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            - echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"                           >> build.env
+            - echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"                   >> build.env
+            - echo "export HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}"                               >> build.env
+          
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy mind map evaluation pipeline cloud run
+          <<: *deploy-mindmap-evaluation-pipeline-cloud-run
+
+    deploy-mmp-rf-evaluation-3apis-cloud-run-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy reflection/mindmap evaluation api and evaluation api cloud run
+          <<: *deploy-remained-cloud-run-resources
+
+    deploy-evaluation-api-gateway-for-ics-analysis-dev:
+      - step:
+          name: Set up enviromental variables
+          script:
+            - echo "Setup enviromental variables"
+            - rm -f build.env
+            - echo "export ENV=ics-analysis-dev"                                            >> build.env
+            - echo "export PROJECT=ics-analysis-dev"                                        >> build.env
+            - echo "export SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL_ICS_DEV}"          >> build.env
+            - echo "export KEY_FILE=${SERVICE_ACCOUNT_KEY_FILE_ICS_DEV}"                    >> build.env
+            - echo "export REGION=${DEV_REGION}"                                            >> build.env
+            
+          artifacts:
+            - build.env
+      - step:
+          name: Deploy evaluation api gateway
+          <<: *deploy-evaluation-api-gateway
+
+################################  Repository Mirror pipeline run on a schedule ####################
+    sync-to-gh:
+      - step:
+          name: Sync GitHub Mirror
+          image: alpine/git:latest
+          clone:
+            enabled: false
+          script:
+            - git clone --bare git@bitbucket.org:addaxis/ics-pipelines-deployment.git
+            - cd ics-pipelines-deployment.git
+            - git push --mirror git@github.com:addaxis/ics-bitbucket-mirror.git
